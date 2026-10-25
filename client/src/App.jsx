@@ -42,6 +42,7 @@ function Navbar() {
         <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
         <a href="#destinations" onClick={() => setMenuOpen(false)}>Destinations</a>
         <a href="#categories" onClick={() => setMenuOpen(false)}>Categories</a>
+        <a href="#ai-guide" onClick={() => setMenuOpen(false)}>AI Tour Guide</a>
         <a href="#about" onClick={() => setMenuOpen(false)}>About Maasin</a>
         <a className="nav-cta" href="#destinations" onClick={() => setMenuOpen(false)}>
           Explore places ↗
@@ -100,6 +101,13 @@ function App() {
   const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [travelers, setTravelers] = useState(2);
+const [budget, setBudget] = useState(1000);
+const [pace, setPace] = useState("moderate");
+const [interests, setInterests] = useState([]);
+const [itinerary, setItinerary] = useState(null);
+const [itineraryLoading, setItineraryLoading] = useState(false);
+const [itineraryError, setItineraryError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -142,6 +150,40 @@ function App() {
     loadSpots();
     return () => controller.abort();
   }, []);
+  async function generateItinerary(event) {
+  event.preventDefault();
+
+  setItineraryLoading(true);
+  setItineraryError("");
+  setItinerary(null);
+
+  try {
+    const response = await fetch(`${API_URL}/itineraries/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        travelers: Number(travelers),
+        startingBudgetPerPerson: Number(budget),
+        pace,
+        interests,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to generate itinerary.");
+    }
+
+    setItinerary(data.itinerary);
+  } catch (error) {
+    setItineraryError(error.message || "Something went wrong.");
+  } finally {
+    setItineraryLoading(false);
+  }
+}
 
   const filteredSpots = spots.filter((spot) => {
     const text = `${spot.name || ""} ${spot.description || ""} ${spot.address || ""}`
@@ -236,6 +278,148 @@ function App() {
             ))}
           </div>
         </section>
+
+        
+        <section className="ai-guide-section section-wrap" id="ai-guide">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">YOUR PERSONAL TRAVEL PLANNER</span>
+              <h2>Meet your AI Tour Guide.</h2>
+              <p className="section-subtitle">
+                Create a one-day Maasin City itinerary based on your budget,
+                group size, and interests.
+              </p>
+            </div>
+          </div>
+
+          <form className="ai-guide-form" onSubmit={generateItinerary}>
+            <label>
+              Number of travelers
+              <input
+                type="number"
+                min="1"
+                max="50"
+                value={travelers}
+                onChange={(event) => setTravelers(event.target.value)}
+                required
+              />
+            </label>
+
+            <label>
+              Budget per person (₱)
+              <input
+                type="number"
+                min="0"
+                max="1000000"
+                value={budget}
+                onChange={(event) => setBudget(event.target.value)}
+                required
+              />
+            </label>
+
+            <label>
+              Travel pace
+              <select
+                value={pace}
+                onChange={(event) => setPace(event.target.value)}
+              >
+                <option value="relaxed">Relaxed</option>
+                <option value="moderate">Moderate</option>
+                <option value="packed">Packed</option>
+              </select>
+            </label>
+
+            <fieldset className="interest-options">
+              <legend>What are you interested in?</legend>
+              {["Nature", "Beach", "Cultural", "Adventure"].map((interest) => (
+                <label key={interest} className="interest-option">
+                  <input
+                    type="checkbox"
+                    checked={interests.includes(interest)}
+                    onChange={(event) => {
+                      setInterests((current) =>
+                        event.target.checked
+                          ? [...current, interest]
+                          : current.filter((item) => item !== interest)
+                      );
+                    }}
+                  />
+                  {interest}
+                </label>
+              ))}
+            </fieldset>
+
+            <button
+              className="primary-button"
+              type="submit"
+              disabled={itineraryLoading}
+            >
+              {itineraryLoading
+                ? "Creating your itinerary..."
+                : "Generate My Itinerary ↗"}
+            </button>
+          </form>
+
+          {itineraryError && (
+            <div className="status-message error-message" role="alert">
+              <h3>Couldn't generate your itinerary</h3>
+              <p>{itineraryError}</p>
+            </div>
+          )}
+
+          {itinerary && (
+            <div className="ai-itinerary-results" aria-live="polite">
+              <span className="eyebrow">YOUR PERSONALIZED PLAN</span>
+              <h3>{itinerary.title}</h3>
+              <p>{itinerary.summary}</p>
+
+              <div className="ai-budget-summary">
+                <p>
+                  Estimated group cost:{" "}
+                  <strong>
+                    ₱{Number(itinerary.budget?.totalGroupCost || 0).toLocaleString()}
+                  </strong>
+                </p>
+                <p>
+                  Estimated cost per person:{" "}
+                  <strong>
+                    ₱{Number(itinerary.budget?.totalPerPerson || 0).toLocaleString()}
+                  </strong>
+                </p>
+              </div>
+
+              <div className="ai-stop-list">
+                {itinerary.stops?.map((stop, index) => (
+                  <article className="ai-stop-card" key={`${stop.name}-${index}`}>
+                    <span className="ai-stop-number">{index + 1}</span>
+                    <div>
+                      <h4>{stop.name}</h4>
+                      <p>
+                        {stop.startTime} – {stop.endTime}
+                      </p>
+                      <p>{stop.activity}</p>
+                      <small>
+                        Entrance: ₱{Number(stop.estimatedEntranceFeePerPerson || 0).toLocaleString()} per person
+                      </small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {itinerary.travelTips?.length > 0 && (
+                <div className="ai-travel-tips">
+                  <h4>Travel tips</h4>
+                  <ul>
+                    {itinerary.travelTips.map((tip, index) => (
+                      <li key={index}>{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
 
         <section className="destinations-section" id="destinations">
           <div className="section-wrap">

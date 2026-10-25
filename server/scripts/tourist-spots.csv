@@ -1,0 +1,5 @@
+name,slug,description,category,address,latitude,longitude,entranceFee,estimatedTravelCost,openingHours,contactDetails,imageUrl,gallery,status
+Maasin Cathedral,maasin-cathedral,Historic cathedral in Maasin City,Religious,Maasin City,,,0,0,,,/images/maasin cathedral.webp,,published
+Danao Forest Park,danao-forest-park,Danao Forest Park in Maasin,Nature,Maasin City,,,0,0,,,/images/Danao-Forest-Park-Maasin.jpg,,published
+Mahayahay Falls,mahayahay-falls,Beautiful waterfall in Maasin,Nature,Maasin City,,,50,0,,,/images/sundays villa mahayahay.webp,,published
+Monte Cueva,monte-cueva,Monte Cueva shrine in Maasin,Religious,Maasin City,,,0,0,,,/images/montecueva.webp,,published
