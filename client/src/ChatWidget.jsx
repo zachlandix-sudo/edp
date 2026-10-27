@@ -4,6 +4,9 @@ import "./ChatWidget.css";
 const API_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
+// The server only reads the last 12 messages, so we never send more than that.
+const MAX_HISTORY_SENT = 12;
+
 const GREETING =
   "Hi! I'm the Maasin Tour Guide assistant. Ask me about tourist spots, fees, or opening hours. You can write in English, Bisaya, or Filipino.";
 
@@ -44,7 +47,7 @@ function ChatWidget() {
       const response = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next.slice(-MAX_HISTORY_SENT) }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -133,6 +136,11 @@ function ChatWidget() {
 
             <div ref={endRef} />
           </div>
+
+          <p className="chat-privacy">
+            Your messages are sent to Google Gemini to generate answers. Please
+            don't share personal details.
+          </p>
 
           <form className="chat-form" onSubmit={handleSubmit}>
             <input

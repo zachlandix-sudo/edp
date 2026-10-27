@@ -101,7 +101,14 @@ export async function chat(req, res) {
       .limit(200)
       .lean();
 
-    const ai = new GoogleGenAI({ apiKey });
+      if (spots.length === 0) {
+      return res.status(503).json({
+        message:
+          "Tourist spot information is not available yet. Please try again later.",
+      });
+    }
+  
+      const ai = new GoogleGenAI({ apiKey });
     const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
     const controller = new AbortController();
