@@ -2,8 +2,12 @@ import express from "express";
 import cors from "cors";
 import spotRoutes from "./routes/spotRoutes.js";
 import itineraryRoutes from "./routes/itineraryRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 const app = express();
+
+// Needed on hosts behind a proxy so each visitor's IP is read correctly.
+app.set("trust proxy", 1);
 
 // bag-o nga gi-add
 app.use((req, res, next) => {
@@ -38,6 +42,7 @@ app.get("/api/health", (_req, res) => {
 
 app.use("/api/spots", spotRoutes);
 app.use("/api/itineraries", itineraryRoutes);
+app.use("/api/chat", chatRoutes);
 
 // JSON response for unknown routes
 app.use((_req, res) => {

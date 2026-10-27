@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ChatWidget from "./ChatWidget.jsx";
 
 const API_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
@@ -102,12 +103,12 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [travelers, setTravelers] = useState(2);
-const [budget, setBudget] = useState(1000);
-const [pace, setPace] = useState("moderate");
-const [interests, setInterests] = useState([]);
-const [itinerary, setItinerary] = useState(null);
-const [itineraryLoading, setItineraryLoading] = useState(false);
-const [itineraryError, setItineraryError] = useState("");
+  const [budget, setBudget] = useState(1000);
+  const [pace, setPace] = useState("moderate");
+  const [interests, setInterests] = useState([]);
+  const [itinerary, setItinerary] = useState(null);
+  const [itineraryLoading, setItineraryLoading] = useState(false);
+  const [itineraryError, setItineraryError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -139,10 +140,7 @@ const [itineraryError, setItineraryError] = useState("");
             "We couldn't load destinations from the server."
           );
         }
-      }
-
-
-      finally {
+      } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
     }
@@ -150,40 +148,41 @@ const [itineraryError, setItineraryError] = useState("");
     loadSpots();
     return () => controller.abort();
   }, []);
+
   async function generateItinerary(event) {
-  event.preventDefault();
+    event.preventDefault();
 
-  setItineraryLoading(true);
-  setItineraryError("");
-  setItinerary(null);
+    setItineraryLoading(true);
+    setItineraryError("");
+    setItinerary(null);
 
-  try {
-    const response = await fetch(`${API_URL}/itineraries/generate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        travelers: Number(travelers),
-        startingBudgetPerPerson: Number(budget),
-        pace,
-        interests,
-      }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/itineraries/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          travelers: Number(travelers),
+          startingBudgetPerPerson: Number(budget),
+          pace,
+          interests,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Unable to generate itinerary.");
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to generate itinerary.");
+      }
+
+      setItinerary(data.itinerary);
+    } catch (error) {
+      setItineraryError(error.message || "Something went wrong.");
+    } finally {
+      setItineraryLoading(false);
     }
-
-    setItinerary(data.itinerary);
-  } catch (error) {
-    setItineraryError(error.message || "Something went wrong.");
-  } finally {
-    setItineraryLoading(false);
   }
-}
 
   const filteredSpots = spots.filter((spot) => {
     const text = `${spot.name || ""} ${spot.description || ""} ${spot.address || ""}`
@@ -279,7 +278,6 @@ const [itineraryError, setItineraryError] = useState("");
           </div>
         </section>
 
-        
         <section className="ai-guide-section section-wrap" id="ai-guide">
           <div className="section-heading">
             <div>
@@ -420,7 +418,6 @@ const [itineraryError, setItineraryError] = useState("");
           )}
         </section>
 
-
         <section className="destinations-section" id="destinations">
           <div className="section-wrap">
             <div className="section-heading">
@@ -550,6 +547,8 @@ const [itineraryError, setItineraryError] = useState("");
         <a href="#home">Back to top ↑</a>
         <small className="copyright">© {new Date().getFullYear()} Maasin Tour Guide</small>
       </footer>
+
+      <ChatWidget />
     </>
   );
 }
