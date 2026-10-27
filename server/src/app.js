@@ -6,8 +6,10 @@ import chatRoutes from "./routes/chatRoutes.js";
 
 const app = express();
 
-// Needed on hosts behind a proxy so each visitor's IP is read correctly.
-app.set("trust proxy", 1);
+// Only trust the proxy header when the host tells us we are behind one (for example on Render).
+if (process.env.TRUST_PROXY === "1") {
+  app.set("trust proxy", 1);
+}
 
 // bag-o nga gi-add
 app.use((req, res, next) => {
